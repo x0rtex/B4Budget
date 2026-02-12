@@ -67,6 +67,27 @@
     </ItemGroup>
 
     <ItemGroup>
+      <AndroidResource Remove="Data - Copy\**" />
+      <AndroidResource Remove="Models - Copy\**" />
+      <AndroidResource Remove="Services - Copy\**" />
+      <Compile Remove="Data - Copy\**" />
+      <Compile Remove="Models - Copy\**" />
+      <Compile Remove="Services - Copy\**" />
+      <Content Remove="Data - Copy\**" />
+      <Content Remove="Models - Copy\**" />
+      <Content Remove="Services - Copy\**" />
+      <EmbeddedResource Remove="Data - Copy\**" />
+      <EmbeddedResource Remove="Models - Copy\**" />
+      <EmbeddedResource Remove="Services - Copy\**" />
+      <MauiXaml Remove="Data - Copy\**" />
+      <MauiXaml Remove="Models - Copy\**" />
+      <MauiXaml Remove="Services - Copy\**" />
+      <None Remove="Data - Copy\**" />
+      <None Remove="Models - Copy\**" />
+      <None Remove="Services - Copy\**" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.3">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -75,6 +96,12 @@
         <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.31" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="10.0.31" />
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Models\" />
+      <Folder Include="Data\" />
+      <Folder Include="Services\" />
     </ItemGroup>
 
 </Project>

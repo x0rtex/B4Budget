@@ -1,10 +1,9 @@
-﻿namespace B4Budget
+﻿namespace B4Budget;
+
+public partial class MainPage : ContentPage
 {
-    public partial class MainPage : ContentPage
+    public MainPage()
     {
-        public MainPage()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
 }
