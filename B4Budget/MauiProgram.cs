@@ -1,6 +1,8 @@
 ﻿using B4Budget.Data;
+using B4Budget.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MudBlazor.Services;
 
 namespace B4Budget;
 
@@ -19,6 +21,10 @@ public static class MauiProgram
             });
 
         builder.Services.AddMauiBlazorWebView();
+
+        // Services
+        builder.Services.AddScoped<IBudgetService, BudgetService>();
+        builder.Services.AddScoped<ICalculationService, CalculationService>();
 
         #if DEBUG
         builder.Services.AddBlazorWebViewDeveloperTools();
