@@ -1,0 +1,113 @@
+﻿@using B4Budget.Models
+@using B4Budget.Services
+@inject IBudgetService BudgetService
+
+<tr>
+    <!-- Entry Name -->
+    <td @onclick="StartEditingName">
+        @if (_editingName)
+        {
+            <input type="text"
+                   @bind="_editNameValue"
+                   @onblur="SaveName"
+                   @onkeydown="HandleNameKeyDown"/>
+        }
+        else
+        {
+            <span>@Entry.Name</span>
+            <span>@GetRecurrenceBadge()</span>
+            <button @onclick="DeleteEntry" @onclick:stopPropagation="true" title="Delete entry">x</button>
+        }
+    </td>
+
+    <!-- 12 Month Cells -->
+    @for (var month = 0; month < 12; month++)
+    {
+        var offset = month; // Capture for closure
+        var value = CalcService.GetEntryMonthValue(Entry, offset);
+        var monthValue = Entry.MonthValues.FirstOrDefault(mv => mv.MonthOffset == offset);
+        var isOverride = monthValue?.IsOverride ?? false;
+
+        <td>
+            <EditableCell Value="value"
+                          IsOverride="isOverride"
+                          OnValueChanged="@(newVal => HandleCellChanged(offset, newVal))" />
+        </td>
+    }
+
+    <!-- Yearly Total -->
+    <td>
+        @CalcService.GetEntryYearlyTotal(Entry).ToString("C2")
+    </td>
+</tr>
+
+@code {
+    [Parameter, EditorRequired]
+    public BudgetEntry Entry { get; set; } = null!;
+
+    [Parameter, EditorRequired]
+    public Budget Budget { get; set; } = null!;
+
+    [Parameter, EditorRequired]
+    public ICalculationService CalcService { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback OnEntryChanged { get; set; }
+
+    private bool _editingName;
+    private string _editNameValue = "";
+
+    private void StartEditingName()
+    {
+        _editNameValue = Entry.Name;
+        _editingName = true;
+    }
+
+    private async Task SaveName()
+    {
+        _editingName = false;
+        if (_editNameValue != Entry.Name && !string.IsNullOrWhiteSpace(_editNameValue))
+        {
+            Entry.Name = _editNameValue;
+            await BudgetService.UpdateEntryAsync(Entry);
+            await OnEntryChanged.InvokeAsync();
+        }
+    }
+
+    private async Task HandleNameKeyDown(KeyboardEventArgs e)
+    {
+	    switch (e.Key)
+	    {
+		    case "Enter":
+			    await SaveName();
+			    break;
+		    case "Escape":
+			    _editingName = false;
+			    break;
+	    }
+    }
+
+    private async Task HandleCellChanged(int monthOffset, decimal newValue)
+    {
+        await BudgetService.SetMonthValueAsync(Entry.Id, monthOffset, newValue);
+        await OnEntryChanged.InvokeAsync();
+    }
+
+    private async Task DeleteEntry()
+    {
+        await BudgetService.DeleteEntryAsync(Entry.Id);
+        await OnEntryChanged.InvokeAsync();
+    }
+
+    private string GetRecurrenceBadge()
+    {
+        return Entry.Recurrence switch
+        {
+            RecurrenceType.Monthly => "M",
+            RecurrenceType.Periodic => "P",
+            RecurrenceType.OneOff => "1",
+            RecurrenceType.Manual => "*",
+            _ => ""
+        };
+    }
+}

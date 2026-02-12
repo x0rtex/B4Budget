@@ -1,0 +1,59 @@
+﻿@using B4Budget.Models
+@using B4Budget.Services
+@inject ICalculationService CalcService
+
+<div>
+    <table>
+        <thead>
+            <tr>
+                <th>Entry</th>
+                @for (var month = 0; month < 12; month++)
+                {
+                    <th>@DateHelper.GetMonthLabel(Budget.StartMonth, Budget.StartYear, month)</th>
+                }
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Income Section -->
+            <SectionGroup Budget="Budget"
+                          Section="SectionType.Income"
+                          CalcService="CalcService"
+                          OnEntryChanged="OnEntryChanged" />
+
+            <!-- Income Subtotal -->
+            <TotalsRow Label="Income Total"
+                       GetValueForMonth="@(offset => CalcService.GetMonthTotal(Budget, SectionType.Income, offset))"
+                       YearlyTotal="@CalcService.GetSectionYearlyTotal(Budget, SectionType.Income)"/>
+
+            <!-- Expense Section -->
+            <SectionGroup Budget="Budget"
+                          Section="SectionType.Expense"
+                          CalcService="CalcService"
+                          OnEntryChanged="OnEntryChanged" />
+
+            <!-- Expense Subtotal -->
+            <TotalsRow Label="Expense Total"
+                       GetValueForMonth="@(offset => CalcService.GetMonthTotal(Budget, SectionType.Expense, offset))"
+                       YearlyTotal="@CalcService.GetSectionYearlyTotal(Budget, SectionType.Expense)"/>
+
+            <!-- Surplus (Income - Expenses) -->
+            <TotalsRow Label="Surplus"
+                       GetValueForMonth="@(offset => CalcService.GetMonthSurplus(Budget, offset))"
+                       YearlyTotal="@(CalcService.GetSectionYearlyTotal(Budget, SectionType.Income) - CalcService.GetSectionYearlyTotal(Budget, SectionType.Expense))"/>
+
+            <!-- Running Balance -->
+            <TotalsRow Label="Running Balance"
+                       GetValueForMonth="@(offset => CalcService.GetRunningBalance(Budget, offset))"
+                       YearlyTotal="@CalcService.GetYearEndBalance(Budget)"/>
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Budget Budget { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback OnEntryChanged { get; set; }
+}

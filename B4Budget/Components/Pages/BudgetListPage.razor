@@ -1,0 +1,147 @@
+﻿@page "/budgets"
+
+@using B4Budget.Models
+@using B4Budget.Services
+@inject IBudgetService BudgetService
+@inject NavigationManager Nav
+
+<PageTitle>Manage Budgets</PageTitle>
+
+<h2>Manage Budgets</h2>
+
+@if (_isLoading)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <!-- Active Budget -->
+    <section>
+        <h3>Active Budget</h3>
+        @if (_activeBudget is not null)
+        {
+            <div>
+                <strong>@_activeBudget.Name</strong>
+                <span>
+                    @GetBudgetRange(_activeBudget)
+                </span>
+                <span>@_activeBudget.Entries.Count entries</span>
+                <button @onclick="ArchiveActiveBudget">Archive</button>
+            </div>
+        }
+        else
+        {
+            <p>No active budget.</p>
+        }
+    </section>
+
+    <!-- Create New Budget -->
+    <section>
+        <h3>Create New Budget</h3>
+        <div>
+            <label>
+                Name:
+                <input type="text" @bind="_newName" />
+            </label>
+            <label>
+                Start month:
+                <select @bind="_newStartMonth">
+                    @for (var month = 1; month <= 12; month++)
+                    {
+                        <option value="@month">
+                            @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month)
+                        </option>
+                    }
+                </select>
+            </label>
+            <label>
+                Start year:
+                <input type="number" @bind="_newStartYear" />
+            </label>
+            @if (_activeBudget is not null)
+            {
+                <label>
+                    <input type="checkbox" @bind="_carryOverEntries" />
+                    Carry over recurring entries from current budget
+                </label>
+            }
+            <button @onclick="CreateNewBudget">Create</button>
+        </div>
+    </section>
+
+    <!-- Archived Budgets -->
+    <section>
+        <h3>Archived Budgets</h3>
+        @if (_archivedBudgets.Count == 0)
+        {
+            <p>No archived budgets yet.</p>
+        }
+        else
+        {
+            @foreach (var budget in _archivedBudgets)
+            {
+                <div>
+                    <strong>@budget.Name</strong>
+                    <span>@GetBudgetRange(budget)</span>
+                    <span>Created @budget.CreatedAt.ToString("MMM yyyy")</span>
+                    <button>Delete (TODO)</button>
+                </div>
+            }
+        }
+    </section>
+}
+
+@code {
+	private Budget? _activeBudget;
+	private List<Budget> _archivedBudgets = [];
+	private bool _isLoading = true;
+
+	// New budget form
+	private string _newName = $"{DateTime.Now.Year + 1} Budget";
+	private int _newStartMonth = 1;
+	private int _newStartYear = DateTime.Now.Year + 1;
+	private bool _carryOverEntries = true;
+
+	protected override async Task OnInitializedAsync() => await LoadBudgets();
+
+	private async Task LoadBudgets()
+	{
+		_isLoading = true;
+		_activeBudget = await BudgetService.GetActiveBudgetAsync();
+		_archivedBudgets = await BudgetService.GetArchivedBudgetsAsync();
+		_isLoading = false;
+	}
+
+	private async Task ArchiveActiveBudget()
+	{
+		if (_activeBudget is null) return;
+		await BudgetService.ArchiveBudgetAsync(_activeBudget.Id);
+		await LoadBudgets();
+	}
+
+	private async Task CreateNewBudget()
+	{
+		if (_carryOverEntries && _activeBudget is not null)
+		{
+			await BudgetService.CreateBudgetFromPreviousAsync(
+				_activeBudget.Id, _newName, _newStartMonth, _newStartYear);
+		}
+		else
+		{
+			if (_activeBudget is not null)
+			{
+				await BudgetService.ArchiveBudgetAsync(_activeBudget.Id);
+			}
+			await BudgetService.CreateBudgetAsync(_newName, _newStartMonth, _newStartYear);
+		}
+
+		Nav.NavigateTo("/");
+	}
+
+	private string GetBudgetRange(Budget budget)
+	{
+		var startDate = new DateTime(budget.StartYear, budget.StartMonth, 1);
+		var endDate = startDate.AddMonths(11);
+		return $"{startDate:MMM yyyy} - {endDate:MMM yyyy}";
+	}
+}

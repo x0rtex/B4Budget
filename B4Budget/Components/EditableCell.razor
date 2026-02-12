@@ -1,0 +1,63 @@
+﻿<div @onclick="StartEditing">
+	@if (_isEditing)
+	{
+		<input type="number"
+		       step="0.01"
+		       @bind="_editValue"
+		       @onblur="EditCell"
+		       @onkeydown="HandleKeyDown"
+		       @ref="_inputRef"/>
+	}
+	else
+	{
+		<span>
+			@(Value != 0 ? Value.ToString("C2") : "")
+		</span>
+	}
+</div>
+
+@code {
+	[Parameter] public decimal Value { get; set; }
+	[Parameter] public bool IsOverride { get; set; }
+	[Parameter] public EventCallback<decimal> OnValueChanged { get; set; }
+
+	private bool _isEditing;
+	private decimal _editValue;
+	private ElementReference _inputRef;
+
+	// Allow cell to be edited
+	private async Task StartEditing()
+	{
+		_editValue = Value;
+		_isEditing = true;
+		StateHasChanged();
+
+		// Focus the input after render
+		await Task.Delay(1); // Allow render cycle
+		try { await _inputRef.FocusAsync(); } catch { /* element may not be ready */ }
+	}
+
+	// Edit cell if enter is pressed, stop editing if escape is pressed
+	private async Task HandleKeyDown(KeyboardEventArgs e)
+	{
+		switch (e.Key)
+		{
+			case "Enter":
+				await EditCell();
+				break;
+			case "Escape":
+				_isEditing = false;
+				break;
+		}
+	}
+
+	// Change value of cell
+	private async Task EditCell()
+	{
+		_isEditing = false;
+		if (_editValue != Value)
+		{
+			await OnValueChanged.InvokeAsync(_editValue);
+		}
+	}
+}

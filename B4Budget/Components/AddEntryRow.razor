@@ -1,0 +1,67 @@
+﻿@using B4Budget.Models
+@using B4Budget.Services
+@inject IBudgetService BudgetService
+
+<tr>
+    <td colspan="2">
+        <input type="text"
+               placeholder="+ Add entry..."
+               @bind="_name"
+               @onkeydown="HandleKeyDown"/>
+    </td>
+    <td colspan="2">
+        <select @bind="_recurrence">
+            <option value="@RecurrenceType.Monthly">Monthly</option>
+            <option value="@RecurrenceType.Periodic">Periodic</option>
+            <option value="@RecurrenceType.OneOff">One-off</option>
+            <option value="@RecurrenceType.Manual">Manual</option>
+        </select>
+    </td>
+    <td colspan="2">
+        <input type="number"
+               step="0.01"
+               placeholder="Amount"
+               @bind="_amount"
+               @onkeydown="HandleKeyDown"/>
+    </td>
+    <td colspan="8">
+        <button @onclick="AddEntry" disabled="@(string.IsNullOrWhiteSpace(_name))">Add</button>
+    </td>
+</tr>
+
+@code {
+    [Parameter, EditorRequired]
+    public SectionType Section { get; set; }
+
+    [Parameter, EditorRequired]
+    public int BudgetId { get; set; }
+
+    [Parameter]
+    public EventCallback OnEntryAdded { get; set; }
+
+    private string _name = "";
+    private RecurrenceType _recurrence = RecurrenceType.Monthly;
+    private decimal _amount;
+
+    private async Task AddEntry()
+    {
+        if (string.IsNullOrWhiteSpace(_name)) return;
+
+        await BudgetService.AddEntryAsync(BudgetId, _name.Trim(), Section, _recurrence, _amount);
+
+        // Reset form
+        _name = "";
+        _amount = 0;
+        _recurrence = RecurrenceType.Monthly;
+
+        await OnEntryAdded.InvokeAsync();
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(_name))
+        {
+            await AddEntry();
+        }
+    }
+}

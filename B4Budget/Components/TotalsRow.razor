@@ -1,0 +1,23 @@
+﻿<tr>
+    <td>@Label</td>
+    @for (var month = 0; month < 12; month++)
+    {
+	    var value = GetValueForMonth(month);
+        <td>@value.ToString("C2")</td>
+    }
+    <td>@YearlyTotal.ToString("C2")</td>
+</tr>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Label { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public Func<int, decimal> GetValueForMonth { get; set; } = null!;
+
+    [Parameter]
+    public decimal YearlyTotal { get; set; }
+
+    [Parameter]
+    public string CssClass { get; set; } = "";
+}

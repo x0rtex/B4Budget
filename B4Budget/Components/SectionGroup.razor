@@ -1,0 +1,46 @@
+﻿@using B4Budget.Models
+@using B4Budget.Services
+
+<!-- Section Header (Income / Expenses) -->
+<tr>
+	<td colspan="14">@(Section == SectionType.Income ? "Income" : "Expenses")</td>
+</tr>
+
+<!-- Entry Rows -->
+@foreach (var entry in GetBudgetEntries())
+{
+	<BudgetEntryRow Entry="entry"
+	               Budget="Budget"
+	               CalcService="CalcService"
+	               OnEntryChanged="OnEntryChanged" />
+}
+
+<!-- Add New Entry Row -->
+<AddEntryRow Section="Section"
+            BudgetId="Budget.Id"
+            OnEntryAdded="HandleEntryAdded" />
+
+@code {
+	[Parameter, EditorRequired]
+	public Budget Budget { get; set; } = null!;
+
+	[Parameter, EditorRequired]
+	public SectionType Section { get; set; }
+
+	[Parameter, EditorRequired]
+	public ICalculationService CalcService { get; set; } = null!;
+
+	[Parameter]
+	public EventCallback OnEntryChanged { get; set; }
+	
+	// Get all budget entries in section
+	private IEnumerable<BudgetEntry> GetBudgetEntries()
+	{
+		return Budget.Entries
+			.Where(entry => entry.Section == Section)
+			.OrderBy(entry => entry.SortOrder);
+	}
+
+	// Re-calculate after entry is added
+	private async Task HandleEntryAdded() => await OnEntryChanged.InvokeAsync();
+}
