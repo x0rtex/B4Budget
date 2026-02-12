@@ -2,7 +2,6 @@
 using B4Budget.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using MudBlazor.Services;
 
 namespace B4Budget;
 
