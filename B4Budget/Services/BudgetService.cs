@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace B4Budget.Services;
 
-public class BudgetService(BudgetDbContext db)
+public class BudgetService(BudgetDbContext db) : IBudgetService
 {
     public async Task<Budget?> GetActiveBudgetAsync()
     {
