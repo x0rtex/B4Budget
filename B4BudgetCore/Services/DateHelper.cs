@@ -1,4 +1,4 @@
-﻿namespace B4Budget.Services;
+﻿namespace B4BudgetCore.Services;
 
 public static class DateHelper
 {

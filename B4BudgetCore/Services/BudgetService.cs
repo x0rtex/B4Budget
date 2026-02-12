@@ -1,8 +1,8 @@
-﻿using B4Budget.Data;
-using B4Budget.Models;
+﻿using B4BudgetCore.Data;
+using B4BudgetCore.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace B4Budget.Services;
+namespace B4BudgetCore.Services;
 
 public class BudgetService(BudgetDbContext db) : IBudgetService
 {

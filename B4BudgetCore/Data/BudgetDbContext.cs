@@ -1,7 +1,7 @@
-﻿using B4Budget.Models;
+﻿using B4BudgetCore.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace B4Budget.Data;
+namespace B4BudgetCore.Data;
 
 public class BudgetDbContext(DbContextOptions<BudgetDbContext> options) : DbContext(options)
 {

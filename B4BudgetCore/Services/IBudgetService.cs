@@ -1,6 +1,6 @@
-﻿using B4Budget.Models;
+﻿using B4BudgetCore.Models;
 
-namespace B4Budget.Services;
+namespace B4BudgetCore.Services;
 
 public interface IBudgetService
 {

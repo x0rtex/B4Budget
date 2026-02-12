@@ -1,4 +1,4 @@
-﻿namespace B4Budget.Models;
+﻿namespace B4BudgetCore.Models;
 
 public class Budget
 {

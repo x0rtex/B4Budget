@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="B4Budget/B4Budget.csproj" />
+  <Project Path="B4BudgetCore/B4BudgetCore.csproj" Id="f9ffb7ba-8ede-4182-8fe8-3b05a2598a7e" />
 </Solution>

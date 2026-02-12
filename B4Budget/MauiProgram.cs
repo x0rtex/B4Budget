@@ -1,5 +1,5 @@
-﻿using B4Budget.Data;
-using B4Budget.Services;
+﻿using B4BudgetCore.Data;
+using B4BudgetCore.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
