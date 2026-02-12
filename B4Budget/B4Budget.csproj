@@ -32,10 +32,10 @@
         <ApplicationTitle>B4Budget</ApplicationTitle>
 
         <!-- App Identifier -->
-        <ApplicationId>com.companyname.b4budget</ApplicationId>
+        <ApplicationId>com.x0rtex.b4budget</ApplicationId>
 
         <!-- Versions -->
-        <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+        <ApplicationDisplayVersion>0.1</ApplicationDisplayVersion>
         <ApplicationVersion>1</ApplicationVersion>
 
         <!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
@@ -46,6 +46,8 @@
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
         <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+        <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+        <AnalysisLevel>latest</AnalysisLevel>
     </PropertyGroup>
 
     <ItemGroup>
@@ -67,27 +69,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <AndroidResource Remove="Data - Copy\**" />
-      <AndroidResource Remove="Models - Copy\**" />
-      <AndroidResource Remove="Services - Copy\**" />
-      <Compile Remove="Data - Copy\**" />
-      <Compile Remove="Models - Copy\**" />
-      <Compile Remove="Services - Copy\**" />
-      <Content Remove="Data - Copy\**" />
-      <Content Remove="Models - Copy\**" />
-      <Content Remove="Services - Copy\**" />
-      <EmbeddedResource Remove="Data - Copy\**" />
-      <EmbeddedResource Remove="Models - Copy\**" />
-      <EmbeddedResource Remove="Services - Copy\**" />
-      <MauiXaml Remove="Data - Copy\**" />
-      <MauiXaml Remove="Models - Copy\**" />
-      <MauiXaml Remove="Services - Copy\**" />
-      <None Remove="Data - Copy\**" />
-      <None Remove="Models - Copy\**" />
-      <None Remove="Services - Copy\**" />
-    </ItemGroup>
-
-    <ItemGroup>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.3">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -99,7 +80,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Models\" />
       <Folder Include="Data\" />
       <Folder Include="Services\" />
     </ItemGroup>
