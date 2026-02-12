@@ -1,6 +1,6 @@
 ﻿namespace B4Budget.Models;
 
-public class BudgetItem
+public class BudgetEntry
 {
     public int Id { get; set; }
     public int BudgetId { get; set; }

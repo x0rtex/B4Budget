@@ -9,17 +9,17 @@ public class BudgetService(BudgetDbContext db) : IBudgetService
     public async Task<Budget?> GetActiveBudgetAsync()
     {
         return await db.Budgets
-            .Include(b => b.Items)
-                .ThenInclude(i => i.MonthValues)
-            .Where(b => !b.IsArchived)
+            .Include(budget => budget.Entries)
+                .ThenInclude(entry => entry.MonthValues)
+            .Where(budget => !budget.IsArchived)
             .FirstOrDefaultAsync();
     }
 
     public async Task<List<Budget>> GetArchivedBudgetsAsync()
     {
         return await db.Budgets
-            .Where(b => b.IsArchived)
-            .OrderByDescending(b => b.CreatedAt)
+            .Where(budget => budget.IsArchived)
+            .OrderByDescending(budget => budget.CreatedAt)
             .ToListAsync();
     }
 
@@ -51,8 +51,8 @@ public class BudgetService(BudgetDbContext db) : IBudgetService
         int previousBudgetId, string name, int startMonth, int startYear)
     {
         var previous = await db.Budgets
-            .Include(b => b.Items)
-            .FirstOrDefaultAsync(b => b.Id == previousBudgetId);
+            .Include(budget => budget.Entries)
+            .FirstOrDefaultAsync(budget => budget.Id == previousBudgetId);
 
         // Archive the previous budget
         if (previous is not null)
@@ -71,37 +71,37 @@ public class BudgetService(BudgetDbContext db) : IBudgetService
         db.Budgets.Add(newBudget);
         await db.SaveChangesAsync(); // Get the new budget's ID
 
-        // Carry over Monthly and Periodic items (NOT OneOff or Manual)
+        // Carry over Monthly and Periodic entries (NOT OneOff or Manual)
         if (previous is not null)
         {
-            var carryOverItems = previous.Items
-                .Where(i => i.Recurrence is RecurrenceType.Monthly or RecurrenceType.Periodic)
+            var carryOverEntries = previous.Entries
+                .Where(entry => entry.Recurrence is RecurrenceType.Monthly or RecurrenceType.Periodic)
                 .ToList();
 
-            foreach (var newItem in carryOverItems.Select(oldItem => new BudgetItem
+            foreach (var newEntry in carryOverEntries.Select(oldEntry => new BudgetEntry
                      {
                          BudgetId = newBudget.Id,
-                         Name = oldItem.Name,
-                         Section = oldItem.Section,
-                         Recurrence = oldItem.Recurrence,
-                         Amount = oldItem.Amount,
-                         SortOrder = oldItem.SortOrder
+                         Name = oldEntry.Name,
+                         Section = oldEntry.Section,
+                         Recurrence = oldEntry.Recurrence,
+                         Amount = oldEntry.Amount,
+                         SortOrder = oldEntry.SortOrder
                      }))
             {
-                db.BudgetItems.Add(newItem);
+                db.BudgetEntries.Add(newEntry);
 
-                // Auto-generate month values for Monthly items
-                if (newItem.Recurrence != RecurrenceType.Monthly)
+                // Auto-generate month values for Monthly entries
+                if (newEntry.Recurrence != RecurrenceType.Monthly)
                     continue;
 
-                await db.SaveChangesAsync(); // Get the item ID
+                await db.SaveChangesAsync(); // Get the entry ID
                 for (var offset = 0; offset < 12; offset++)
                 {
                     db.MonthValues.Add(new MonthValue
                     {
-                        BudgetItemId = newItem.Id,
+                        BudgetEntryId = newEntry.Id,
                         MonthOffset = offset,
-                        Value = newItem.Amount,
+                        Value = newEntry.Amount,
                         IsOverride = false
                     });
                 }
@@ -114,16 +114,16 @@ public class BudgetService(BudgetDbContext db) : IBudgetService
         return (await GetActiveBudgetAsync())!;
     }
 
-    public async Task<BudgetItem> AddItemAsync(
+    public async Task<BudgetEntry> AddEntryAsync(
         int budgetId, string name, SectionType section,
         RecurrenceType recurrence, decimal amount)
     {
         // Determine the next sort order in this section
-        var maxSort = await db.BudgetItems
-            .Where(i => i.BudgetId == budgetId && i.Section == section)
-            .MaxAsync(i => (int?)i.SortOrder) ?? -1;
+        var maxSort = await db.BudgetEntries
+            .Where(entry => entry.BudgetId == budgetId && entry.Section == section)
+            .MaxAsync(entry => entry.SortOrder as int?) ?? -1;
 
-        var item = new BudgetItem
+        var entry = new BudgetEntry
         {
             BudgetId = budgetId,
             Name = name,
@@ -133,18 +133,18 @@ public class BudgetService(BudgetDbContext db) : IBudgetService
             SortOrder = maxSort + 1
         };
 
-        db.BudgetItems.Add(item);
-        await db.SaveChangesAsync(); // Get the item ID
+        db.BudgetEntries.Add(entry);
+        await db.SaveChangesAsync(); // Get the entry ID
 
         if (recurrence != RecurrenceType.Monthly)
-            return item;
+            return entry;
 
         // Auto-generate month values for Monthly recurrence
         for (var offset = 0; offset < 12; offset++)
         {
             db.MonthValues.Add(new MonthValue
             {
-                BudgetItemId = item.Id,
+                BudgetEntryId = entry.Id,
                 MonthOffset = offset,
                 Value = amount,
                 IsOverride = false
@@ -152,38 +152,38 @@ public class BudgetService(BudgetDbContext db) : IBudgetService
         }
         await db.SaveChangesAsync();
 
-        return item;
+        return entry;
     }
 
-    public async Task UpdateItemAsync(BudgetItem item)
+    public async Task UpdateEntryAsync(BudgetEntry entry)
     {
-        var existing = await db.BudgetItems.FindAsync(item.Id);
+        var existing = await db.BudgetEntries.FindAsync(entry.Id);
         if (existing is null) return;
 
-        existing.Name = item.Name;
-        existing.Amount = item.Amount;
-        existing.Recurrence = item.Recurrence;
-        existing.SortOrder = item.SortOrder;
+        existing.Name = entry.Name;
+        existing.Amount = entry.Amount;
+        existing.Recurrence = entry.Recurrence;
+        existing.SortOrder = entry.SortOrder;
         await db.SaveChangesAsync();
     }
 
-    public async Task DeleteItemAsync(int itemId)
+    public async Task DeleteEntryAsync(int entryId)
     {
-        var item = await db.BudgetItems
-            .Include(i => i.MonthValues)
-            .FirstOrDefaultAsync(i => i.Id == itemId);
+        var entry = await db.BudgetEntries
+            .Include(entry => entry.MonthValues)
+            .FirstOrDefaultAsync(entry => entry.Id == entryId);
 
-        if (item is null) return;
+        if (entry is null) return;
 
-        db.BudgetItems.Remove(item); // Cascade deletes MonthValues
+        db.BudgetEntries.Remove(entry); // Cascade deletes MonthValues
         await db.SaveChangesAsync();
     }
 
-    public async Task SetMonthValueAsync(int budgetItemId, int monthOffset, decimal value)
+    public async Task SetMonthValueAsync(int budgetEntryId, int monthOffset, decimal value)
     {
         var existing = await db.MonthValues
-            .FirstOrDefaultAsync(mv =>
-                mv.BudgetItemId == budgetItemId && mv.MonthOffset == monthOffset);
+            .FirstOrDefaultAsync(monthValue =>
+                monthValue.BudgetEntryId == budgetEntryId && monthValue.MonthOffset == monthOffset);
 
         if (existing is not null)
         {
@@ -194,7 +194,7 @@ public class BudgetService(BudgetDbContext db) : IBudgetService
         {
             db.MonthValues.Add(new MonthValue
             {
-                BudgetItemId = budgetItemId,
+                BudgetEntryId = budgetEntryId,
                 MonthOffset = monthOffset,
                 Value = value,
                 IsOverride = true // User is explicitly placing a value
@@ -204,12 +204,12 @@ public class BudgetService(BudgetDbContext db) : IBudgetService
         await db.SaveChangesAsync();
     }
 
-    public async Task UpdateSortOrderAsync(int budgetItemId, int newSortOrder)
+    public async Task UpdateSortOrderAsync(int budgetEntryId, int newSortOrder)
     {
-        var item = await db.BudgetItems.FindAsync(budgetItemId);
-        if (item is null) return;
+        var entry = await db.BudgetEntries.FindAsync(budgetEntryId);
+        if (entry is null) return;
 
-        item.SortOrder = newSortOrder;
+        entry.SortOrder = newSortOrder;
         await db.SaveChangesAsync();
     }
 }

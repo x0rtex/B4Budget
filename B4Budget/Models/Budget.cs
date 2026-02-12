@@ -9,5 +9,5 @@ public class Budget
     public bool IsArchived { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-    public ICollection<BudgetItem> Items { get; set; } = new List<BudgetItem>();
+    public ICollection<BudgetEntry> Entries { get; set; } = new List<BudgetEntry>();
 }

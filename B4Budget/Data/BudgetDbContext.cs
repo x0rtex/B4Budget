@@ -6,47 +6,47 @@ namespace B4Budget.Data;
 public class BudgetDbContext(DbContextOptions<BudgetDbContext> options) : DbContext(options)
 {
     public DbSet<Budget> Budgets => Set<Budget>();
-    public DbSet<BudgetItem> BudgetItems => Set<BudgetItem>();
+    public DbSet<BudgetEntry> BudgetEntries => Set<BudgetEntry>();
     public DbSet<MonthValue> MonthValues => Set<MonthValue>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Budget
-        modelBuilder.Entity<Budget>(e =>
+        modelBuilder.Entity<Budget>(entity =>
         {
-            e.HasKey(b => b.Id);
-            e.Property(b => b.Name)
+            entity.HasKey(budget => budget.Id);
+            entity.Property(budget => budget.Name)
                 .IsRequired()
                 .HasMaxLength(100);
-            e.HasMany(b => b.Items)
-                .WithOne(i => i.Budget)
-                .HasForeignKey(i => i.BudgetId)
+            entity.HasMany(budget => budget.Entries)
+                .WithOne(entry => entry.Budget)
+                .HasForeignKey(entry => entry.BudgetId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // BudgetItem
-        modelBuilder.Entity<BudgetItem>(e =>
+        // BudgetEntry
+        modelBuilder.Entity<BudgetEntry>(entity =>
         {
-            e.HasKey(i => i.Id);
-            e.Property(i => i.Name)
+            entity.HasKey(entry => entry.Id);
+            entity.Property(entry => entry.Name)
                 .IsRequired()
                 .HasMaxLength(200);
-            e.Property(i => i.Amount)
+            entity.Property(entry => entry.Amount)
                 .HasColumnType("TEXT"); // SQLite stores decimals as TEXT
-            e.HasMany(i => i.MonthValues)
-                .WithOne(mv => mv.BudgetItem)
-                .HasForeignKey(mv => mv.BudgetItemId)
+            entity.HasMany(entry => entry.MonthValues)
+                .WithOne(monthValue => monthValue.BudgetEntry)
+                .HasForeignKey(monthValue => monthValue.BudgetEntryId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
         // MonthValue
-        modelBuilder.Entity<MonthValue>(e =>
+        modelBuilder.Entity<MonthValue>(entity =>
         {
-            e.HasKey(mv => mv.Id);
-            e.Property(mv => mv.Value)
+            entity.HasKey(monthValue => monthValue.Id);
+            entity.Property(monthValue => monthValue.Value)
                 .HasColumnType("TEXT"); // SQLite stores decimals as TEXT
-            // Composite unique index: one value per item per month
-            e.HasIndex(mv => new { mv.BudgetItemId, mv.MonthOffset })
+            // Composite unique index: one value per entry per month
+            entity.HasIndex(monthValue => new { monthValue.BudgetEntryId, monthValue.MonthOffset })
                 .IsUnique();
         });
     }
