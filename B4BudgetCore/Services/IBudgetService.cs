@@ -9,6 +9,7 @@ public interface IBudgetService
     Task<List<Budget>> GetArchivedBudgetsAsync();
     Task<Budget> CreateBudgetAsync(string name, int startMonth, int startYear);
     Task ArchiveBudgetAsync(int budgetId);
+    Task DeleteBudgetAsync(int budgetId);
     Task<Budget> CreateBudgetFromPreviousAsync(int previousBudgetId, string name, int startMonth, int startYear);
 
     // Entry

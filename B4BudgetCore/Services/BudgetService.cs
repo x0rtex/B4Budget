@@ -47,6 +47,15 @@ public class BudgetService(BudgetDbContext db) : IBudgetService
         await db.SaveChangesAsync();
     }
 
+    public async Task DeleteBudgetAsync(int budgetId)
+    {
+        var budget = await db.Budgets.FindAsync(budgetId);
+        if (budget is null) return;
+
+        db.Budgets.Remove(budget);
+        await db.SaveChangesAsync();
+    }
+
     public async Task<Budget> CreateBudgetFromPreviousAsync(
         int previousBudgetId, string name, int startMonth, int startYear)
     {
